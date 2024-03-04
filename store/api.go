@@ -73,6 +73,8 @@ type Store interface {
 	AdminStore
 	// GrayStore mgr gray resource
 	GrayStore
+	// AuthStoreModule Store Auth module storage interface
+	AuthStoreModule
 }
 
 // NamespaceStore Namespace storage interface

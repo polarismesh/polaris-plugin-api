@@ -77,3 +77,27 @@ type Principal struct {
 	PrincipalID   string
 	PrincipalRole string
 }
+
+// ModifyStrategyDetail 修改鉴权策略详细
+type ModifyStrategyDetail struct {
+	ID               string
+	Name             string
+	Action           string
+	Comment          string
+	AddPrincipals    []Principal
+	RemovePrincipals []Principal
+	AddResources     []StrategyResource
+	RemoveResources  []StrategyResource
+	ModifyTime       time.Time
+}
+
+// ModifyUserGroup 用户组修改
+type ModifyUserGroup struct {
+	ID            string
+	Owner         string
+	Token         string
+	TokenEnable   bool
+	Comment       string
+	AddUserIds    []string
+	RemoveUserIds []string
+}

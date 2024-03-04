@@ -193,3 +193,30 @@ type StrategyConfig struct {
 	// Option StrategyOperator的option
 	Option map[string]interface{} `yaml:"option"`
 }
+
+// OperatorInfo 根据 token 解析出来的具体额外信息
+type OperatorInfo struct {
+	// Origin 原始 token 字符串
+	Origin string
+	// OperatorID 当前 token 绑定的 用户/用户组 ID
+	OperatorID string
+	// OwnerID 当前用户/用户组对应的 owner
+	OwnerID string
+	// Role 如果当前是 user token 的话，该值才能有信息
+	Role string
+	// IsUserToken 当前 token 是否是 user 的 token
+	IsUserToken bool
+	// Disable 标识用户 token 是否被禁用
+	Disable bool
+	// 是否属于匿名操作者
+	Anonymous bool
+}
+
+func NewAnonymous() OperatorInfo {
+	return OperatorInfo{
+		Origin:     "",
+		OwnerID:    "",
+		OperatorID: "__anonymous__",
+		Anonymous:  true,
+	}
+}

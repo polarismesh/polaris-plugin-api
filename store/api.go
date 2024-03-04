@@ -18,30 +18,27 @@
 package store
 
 import (
-	"errors"
-	"sync"
+	"fmt"
 	"time"
 
 	"github.com/polarismesh/polaris-plugin-api/store/model"
 )
 
 var (
-	// StoreSlots store slots
-	StoreSlots = make(map[string]Store)
-
-	once   = &sync.Once{}
-	config = &Config{}
+	slots = make(map[string]Store)
 )
 
-// RegisterStore 注册一个新的Store
-func RegisterStore(s Store) error {
-	name := s.Name()
-	if _, ok := StoreSlots[name]; ok {
-		return errors.New("store name already existed")
+// Register 注册插件
+func Register(name string, plugin Store) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
 	}
+	slots[name] = plugin
+}
 
-	StoreSlots[name] = s
-	return nil
+func Get(name string) (Store, bool) {
+	server, exist := slots[name]
+	return server, exist
 }
 
 // Config Store的通用配置

@@ -19,13 +19,28 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"sync"
 
 	apisecurity "github.com/polarismesh/specification/source/go/api/v1/security"
 	apiservice "github.com/polarismesh/specification/source/go/api/v1/service_manage"
 )
+
+var (
+	_checkerSlots = make(map[string]AuthChecker)
+)
+
+// Register 注册插件
+func RegisterAuthChecker(name string, plugin AuthChecker) {
+	if _, exist := _checkerSlots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	_checkerSlots[name] = plugin
+}
+
+func GetAuthChecker(name string) (AuthChecker, bool) {
+	plugin, exist := _checkerSlots[name]
+	return plugin, exist
+}
 
 // AuthChecker 权限管理通用接口定义
 type AuthChecker interface {
@@ -41,6 +56,23 @@ type AuthChecker interface {
 	IsOpenConsoleAuth() bool
 	// IsOpenClientAuth
 	IsOpenClientAuth() bool
+}
+
+var (
+	_userSlots = make(map[string]UserServer)
+)
+
+// Register 注册插件
+func RegisterUserServer(name string, plugin UserServer) {
+	if _, exist := _userSlots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	_userSlots[name] = plugin
+}
+
+func GetUserServer(name string) (UserServer, bool) {
+	plugin, exist := _userSlots[name]
+	return plugin, exist
 }
 
 // UserServer 用户数据管理 server
@@ -90,6 +122,23 @@ type GroupOperator interface {
 	ResetGroupToken(ctx context.Context, group *apisecurity.UserGroup) *apiservice.Response
 }
 
+var (
+	_strategySlots = make(map[string]StrategyServer)
+)
+
+// Register 注册插件
+func RegisterStrategyServer(name string, plugin StrategyServer) {
+	if _, exist := _strategySlots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	_strategySlots[name] = plugin
+}
+
+func GetStrategyServer(name string) (StrategyServer, bool) {
+	plugin, exist := _strategySlots[name]
+	return plugin, exist
+}
+
 // StrategyServer 策略相关操作
 type StrategyServer interface {
 	// Initialize 初始化
@@ -116,13 +165,6 @@ type StrategyServer interface {
 	AfterResourceOperation(afterCtx *AcquireContext) error
 }
 
-const (
-	// DefaultUserMgnPluginName default user server name
-	DefaultUserMgnPluginName = "defaultUser"
-	// DefaultStrategyMgnPluginName default strategy server name
-	DefaultStrategyMgnPluginName = "defaultStrategy"
-)
-
 // Config 鉴权能力的相关配置参数
 type Config struct {
 	// Name 原AuthServer名称，已废弃
@@ -134,21 +176,6 @@ type Config struct {
 	User *UserConfig `yaml:"user"`
 	// Strategy StrategyOperator的相关配置
 	Strategy *StrategyConfig `yaml:"strategy"`
-}
-
-func (c *Config) SetDefault() {
-	if c.User == nil {
-		c.User = &UserConfig{
-			Name:   DefaultUserMgnPluginName,
-			Option: map[string]interface{}{},
-		}
-	}
-	if c.Strategy == nil {
-		c.Strategy = &StrategyConfig{
-			Name:   DefaultStrategyMgnPluginName,
-			Option: map[string]interface{}{},
-		}
-	}
 }
 
 // UserConfig UserOperator的相关配置
@@ -165,53 +192,4 @@ type StrategyConfig struct {
 	Name string `yaml:"name"`
 	// Option StrategyOperator的option
 	Option map[string]interface{} `yaml:"option"`
-}
-
-var (
-	// userMgnSlots 保存用户管理manager slot
-	userMgnSlots = map[string]UserServer{}
-	// strategyMgnSlots 保存策略管理manager slot
-	strategyMgnSlots = map[string]StrategyServer{}
-	once             sync.Once
-	userMgn          UserServer
-	strategyMgn      StrategyServer
-	finishInit       bool
-)
-
-// RegisterUserServer 注册一个新的 UserServer
-func RegisterUserServer(s UserServer) error {
-	name := s.Name()
-	if _, ok := userMgnSlots[name]; ok {
-		return fmt.Errorf("UserServer=[%s] exist", name)
-	}
-
-	userMgnSlots[name] = s
-	return nil
-}
-
-// GetUserServer 获取一个 UserServer
-func GetUserServer() (UserServer, error) {
-	if !finishInit {
-		return nil, errors.New("UserServer has not done Initialize")
-	}
-	return userMgn, nil
-}
-
-// RegisterStrategyServer 注册一个新的 StrategyServer
-func RegisterStrategyServer(s StrategyServer) error {
-	name := s.Name()
-	if _, ok := strategyMgnSlots[name]; ok {
-		return fmt.Errorf("StrategyServer=[%s] exist", name)
-	}
-
-	strategyMgnSlots[name] = s
-	return nil
-}
-
-// GetStrategyServer 获取一个 StrategyServer
-func GetStrategyServer() (StrategyServer, error) {
-	if !finishInit {
-		return nil, errors.New("StrategyServer has not done Initialize")
-	}
-	return strategyMgn, nil
 }

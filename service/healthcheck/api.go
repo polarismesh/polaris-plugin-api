@@ -19,7 +19,25 @@ package healthcheck
 
 import (
 	"context"
+	"fmt"
 )
+
+var (
+	slots = make(map[string]HealthChecker)
+)
+
+// Register 注册插件
+func Register(name string, plugin HealthChecker) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func Get(name string) (HealthChecker, bool) {
+	server, exist := slots[name]
+	return server, exist
+}
 
 // ReportRequest report heartbeat request
 type ReportRequest struct {

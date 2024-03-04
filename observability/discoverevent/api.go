@@ -1,10 +1,28 @@
 package discoverevent
 
 import (
+	"fmt"
 	"time"
 
 	apiservice "github.com/polarismesh/specification/source/go/api/v1/service_manage"
 )
+
+var (
+	slots = make(map[string]DiscoverChannel)
+)
+
+// Register 注册插件
+func Register(name string, plugin DiscoverChannel) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func Get(name string) (DiscoverChannel, bool) {
+	server, exist := slots[name]
+	return server, exist
+}
 
 // ConfigEntry 单个插件配置
 type ConfigEntry struct {

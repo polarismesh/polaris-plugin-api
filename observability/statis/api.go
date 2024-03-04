@@ -23,6 +23,23 @@ import (
 	"time"
 )
 
+var (
+	slots = make(map[string]Statis)
+)
+
+// Register 注册插件
+func Register(name string, plugin Statis) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func Get(name string) (Statis, bool) {
+	server, exist := slots[name]
+	return server, exist
+}
+
 // ConfigEntry 单个插件配置
 type ConfigEntry struct {
 	Name   string                 `yaml:"name"`

@@ -17,6 +17,25 @@
 
 package crypto
 
+import "fmt"
+
+var (
+	slots = make(map[string]Crypto)
+)
+
+// Register 注册插件
+func RegisterCrypto(name string, plugin Crypto) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func GetCrypto(name string) (Crypto, bool) {
+	server, exist := slots[name]
+	return server, exist
+}
+
 // ConfigEntry 单个插件配置
 type ConfigEntry struct {
 	Name   string                 `yaml:"name"`
@@ -37,6 +56,23 @@ type Crypto interface {
 	Encrypt(plaintext string, key []byte) (cryptotext string, err error)
 	// Decrypt .
 	Decrypt(cryptotext string, key []byte) (string, error)
+}
+
+var (
+	_pwdslots = make(map[string]ParsePassword)
+)
+
+// Register 注册插件
+func RegisterParsePassword(name string, plugin ParsePassword) {
+	if _, exist := _pwdslots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	_pwdslots[name] = plugin
+}
+
+func GetParsePassword(name string) (ParsePassword, bool) {
+	server, exist := _pwdslots[name]
+	return server, exist
 }
 
 // ParsePassword Password plug -in

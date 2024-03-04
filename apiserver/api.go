@@ -52,16 +52,20 @@ type Apiserver interface {
 }
 
 var (
-	Slots = make(map[string]Apiserver)
+	slots = make(map[string]Apiserver)
 )
 
 // Register 注册API服务器
 func Register(name string, server Apiserver) error {
-	if _, exist := Slots[name]; exist {
+	if _, exist := slots[name]; exist {
 		return fmt.Errorf("apiserver name:%s exist", name)
 	}
 
-	Slots[name] = server
-
+	slots[name] = server
 	return nil
+}
+
+func Get(name string) (Apiserver, bool) {
+	server, exist := slots[name]
+	return server, exist
 }

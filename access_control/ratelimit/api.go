@@ -17,6 +17,27 @@
 
 package ratelimit
 
+import (
+	"fmt"
+)
+
+var (
+	slots = make(map[string]Ratelimit)
+)
+
+// Register 注册插件
+func Register(name string, plugin Ratelimit) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func Get(name string) (Ratelimit, bool) {
+	plugin, exist := slots[name]
+	return plugin, exist
+}
+
 // RatelimitType rate limit type
 type RatelimitType int
 

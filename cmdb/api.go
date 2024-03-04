@@ -18,8 +18,27 @@
 package plugin
 
 import (
+	"fmt"
+
 	apimodel "github.com/polarismesh/specification/source/go/api/v1/model"
 )
+
+var (
+	slots = make(map[string]CMDB)
+)
+
+// Register 注册插件
+func Register(name string, plugin CMDB) {
+	if _, exist := slots[name]; exist {
+		panic(fmt.Sprintf("existed plugin: name=%v", name))
+	}
+	slots[name] = plugin
+}
+
+func Get(name string) (CMDB, bool) {
+	server, exist := slots[name]
+	return server, exist
+}
 
 // Location cmdb信息，对应内存结构体
 type Location struct {
